@@ -29,6 +29,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 #include <string.h>
 #include <time.h>
 #include <ctype.h>
+#include <stdbool.h>
 #ifndef NO_ZLIB
 #ifdef _WIN32
 #define ZEXPORT __cdecl
@@ -123,7 +124,9 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 //#else
  //#define DEBUGBREAKPOINT DebugBreak
 //#endif
+#ifndef __GNUC__
 #define __attribute__(x) 
+#endif
 #define PACKED_STRUCT
 typedef __int32 int32;
 typedef __int16 int16;
@@ -175,7 +178,7 @@ void _Q_assert (char *expression, char *function, uint32 line);
 #endif
 
 typedef unsigned char 		byte;
-typedef enum {false, true}	qboolean;
+typedef enum {qfalse = 0, qtrue = 1}	qboolean;
 
 //r1: set this to 1 if you have a stupid endian thingy
 #define Q_BIGENDIAN 0

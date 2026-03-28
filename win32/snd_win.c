@@ -81,7 +81,7 @@ LPDIRECTSOUNDBUFFER pDSBuf, pDSPBuf;
 
 //HINSTANCE hInstDS;
 
-qboolean SNDDMA_InitDirect (void);
+sndinitstat SNDDMA_InitDirect (void);
 qboolean SNDDMA_InitWav (void);
 
 void FreeSound( void );
@@ -638,7 +638,7 @@ Try to find a sound device to mix for.
 Returns false if nothing is found.
 ==================
 */
-int SNDDMA_Init (int fullInit)
+qboolean SNDDMA_Init (int fullInit)
 {
 	sndinitstat	stat;
 

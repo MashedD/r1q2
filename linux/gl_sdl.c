@@ -690,7 +690,7 @@ void *GLimp_GetProcAddress(const char *func)
 	return SDL_GL_GetProcAddress(func);
 }
 
-int GLimp_Init( void *hInstance, void *wndProc )
+qboolean GLimp_Init( void *hInstance, void *wndProc )
 {
 	return SWimp_Init(hInstance, wndProc);
 }

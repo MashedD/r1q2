@@ -24,7 +24,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 #define WIN32_LEAN_AND_MEAN
 #define _WIN32_WINNT 0x0400
 #include "resource.h"
-#include "..\client\client.h"
+#include "../client/client.h"
 #include "winquake.h"
 //#include "zmouse.h"
 
@@ -673,7 +673,8 @@ vidmode_t vid_modes[] =
 	{1280,	1024},
 	{1440,	900},
 	{1680,	1050},
-	{2560,	1920},	
+	{2560,	1920},
+    {1920, 1080}
 };
 
 qboolean EXPORT VID_GetModeInfo( unsigned int *width, unsigned int *height, int mode )
@@ -842,8 +843,10 @@ qboolean VID_LoadRefresh( char *name, char *errstr )
 
 	Com_DPrintf ("refimport_t set.\n");
 
+#if defined(_MSC_VER)
 	__try
 	{
+#endif
 		if ( ( GetRefAPI = (GetRefAPI_t)GetProcAddress( reflib_library, "GetRefAPI" ) ) == 0 )
 		{
 			VID_FreeReflib ();
@@ -902,11 +905,13 @@ qboolean VID_LoadRefresh( char *name, char *errstr )
 
 			return false;
 		}
+#if defined(_MSC_VER)
 	}
 	__except (VidDLLExceptionHandler (GetExceptionCode (), GetExceptionInformation(), errstr))
 	{
 		return false;
 	}
+#endif
 
 	if (re.AppActivate == NULL ||
 		re.BeginFrame == NULL ||

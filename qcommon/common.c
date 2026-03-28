@@ -1790,10 +1790,10 @@ RESTRICT void * EXPORT Z_TagMallocDebug (int size, int tag)
 	z->tag = tag;
 	z->size = size;
 
-#if defined _WIN32
-	z->allocationLocation = _ReturnAddress ();
-#elif defined LINUX
+#if defined LINUX || defined __GNUC__
 	z->allocationLocation = __builtin_return_address (0);
+#elif defined _WIN32
+	z->allocationLocation = _ReturnAddress ();
 #else
 	//FIXME: other OSes/CCs
 	z->allocationLocation = 0;
@@ -1821,10 +1821,10 @@ RESTRICT void * EXPORT Z_TagMallocRelease (int size, int tag)
 	//malloc can crash if negative size is passed, woops.
 	if (size < 0)
 		Com_Error (ERR_DIE, "Z_TagMalloc: Illegal allocation size of %d bytes from %p for tag %d", size,
-#if defined _WIN32
+#if defined LINUX || defined __GNUC__
+		__builtin_return_address (0),
+#elif defined _WIN32
 		_ReturnAddress (),
-#elif defined LINUX
-		__builtin_return_address (0), 
 #else
 		NULL,
 #endif
@@ -1835,13 +1835,13 @@ RESTRICT void * EXPORT Z_TagMallocRelease (int size, int tag)
 
 	if (!z)
 		Com_Error (ERR_DIE, "Z_TagMalloc: Out of memory. Couldn't allocate %i bytes for tag %d from %p (already %li bytes in %li blocks)", size, tag,
-#if defined _WIN32
+#if defined LINUX || defined __GNUC__
+		__builtin_return_address (0),
+#elif defined _WIN32
 		_ReturnAddress (),
-#elif defined LINUX
-		__builtin_return_address (0), 
 #else
 		NULL,
-#endif		
+#endif
 		z_bytes, z_count);
 
 	z_count++;
@@ -1851,10 +1851,10 @@ RESTRICT void * EXPORT Z_TagMallocRelease (int size, int tag)
 
 	z_bytes += size;
 
-#if defined _WIN32
-	z->allocationLocation = _ReturnAddress ();
-#elif defined LINUX
+#if defined LINUX || defined __GNUC__
 	z->allocationLocation = __builtin_return_address (0);
+#elif defined _WIN32
+	z->allocationLocation = _ReturnAddress ();
 #else
 	//FIXME: other OSes/CCs
 	z->allocationLocation = 0;
@@ -1879,10 +1879,10 @@ RESTRICT void * EXPORT Z_TagMallocGame (int size, int tag)
 
 	void		*retAddr;
 
-#if defined _WIN32
-	retAddr = _ReturnAddress ();
-#elif defined LINUX
+#if defined LINUX || defined __GNUC__
 	retAddr = __builtin_return_address (0);
+#elif defined _WIN32
+	retAddr = _ReturnAddress ();
 #else
 	//FIXME: other OSes/CCs
 	retAddr = 0;
@@ -1937,10 +1937,10 @@ void EXPORT Z_FreeGame (void *buf)
 
 	void		*retAddr;
 
-#if defined _WIN32
-	retAddr = _ReturnAddress ();
-#elif defined LINUX
+#if defined LINUX || defined __GNUC__
 	retAddr = __builtin_return_address (0);
+#elif defined _WIN32
+	retAddr = _ReturnAddress ();
 #else
 	//FIXME: other OSes/CCs
 	retAddr = 0;

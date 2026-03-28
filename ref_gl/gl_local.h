@@ -18,6 +18,65 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
 */
 
+/* Legacy ARB constants still used in r1gl code but removed from modern glext.h */
+
+#ifndef GL_SAMPLES_PASSED_ARB
+#define GL_SAMPLES_PASSED_ARB               0x8914  /* = GL_SAMPLES_PASSED */
+#define GL_SAMPLES_PASSED                   GL_SAMPLES_PASSED_ARB
+#endif
+
+#ifndef GL_QUERY_COUNTER_BITS_ARB
+#define GL_QUERY_COUNTER_BITS_ARB           0x8864  /* = GL_QUERY_COUNTER_BITS */
+#define GL_QUERY_COUNTER_BITS               GL_QUERY_COUNTER_BITS_ARB
+#endif
+
+#ifndef GL_CURRENT_QUERY_ARB
+#define GL_CURRENT_QUERY_ARB                0x8865
+#endif
+
+#ifndef GL_QUERY_RESULT_ARB
+#define GL_QUERY_RESULT_ARB                 0x8866  /* = GL_QUERY_RESULT */
+#define GL_QUERY_RESULT                     GL_QUERY_RESULT_ARB
+#endif
+
+#ifndef GL_QUERY_RESULT_AVAILABLE_ARB
+#define GL_QUERY_RESULT_AVAILABLE_ARB       0x8867  /* = GL_QUERY_RESULT_AVAILABLE */
+#endif
+
+#ifndef GL_POINT_DISTANCE_ATTENUATION_ARB
+#define GL_POINT_DISTANCE_ATTENUATION_ARB   0x8129  /* = GL_POINT_DISTANCE_ATTENUATION */
+#endif
+
+#ifndef GL_POINT_FADE_THRESHOLD_SIZE_ARB
+#define GL_POINT_FADE_THRESHOLD_SIZE_ARB    0x8128
+#endif
+
+#ifndef GL_POINT_SIZE_MIN_ARB
+#define GL_POINT_SIZE_MIN_ARB               0x8126
+#endif
+
+#ifndef GL_POINT_SIZE_MAX_ARB
+#define GL_POINT_SIZE_MAX_ARB               0x8127
+#endif
+
+#ifndef GL_POINT_SPRITE_ARB
+#define GL_POINT_SPRITE_ARB                 0x8861  /* = GL_POINT_SPRITE */
+#endif
+
+#ifndef GL_COORD_REPLACE_ARB
+#define GL_COORD_REPLACE_ARB                0x8862  /* = GL_COORD_REPLACE */
+#endif
+
+/* Legacy ARB_texture_env_combine constants (promoted to core in OpenGL 1.3) */
+
+#ifndef GL_COMBINE_RGB_ARB
+#define GL_COMBINE_RGB_ARB                  0x8571
+#endif
+
+#ifndef GL_COMBINE_ALPHA_ARB
+#define GL_COMBINE_ALPHA_ARB                0x8572
+#endif
+
 #ifdef _WIN32
 #  include <windows.h>
 #endif
@@ -102,7 +161,7 @@ typedef struct image_s
 	int		upload_width, upload_height;	// after power of two and picmip
 	int		registration_sequence;		// 0 = free
 	struct msurface_s	*texturechain;	// for sort-by-texture world drawing
-	unsigned long		texnum;						// gl texture binding
+	unsigned int		texnum;						// gl texture binding
 	//int		detailtexnum;
 	float	sl, tl, sh, th;				// 0,0 - 1,1 unless part of the scrap
 	//qboolean	scrap;
@@ -564,7 +623,7 @@ void		GLimp_BeginFrame( float camera_separation );
 void		GLimp_BeginFrame( void );
 #endif
 void	EXPORT	GLimp_EndFrame( void );
-int 		GLimp_Init( void *hinstance, void *hWnd );
+qboolean		GLimp_Init( void *hinstance, void *hWnd );
 void		GLimp_Shutdown( void );
 int    	GLimp_SetMode( unsigned int *pwidth, unsigned int *pheight, int mode, qboolean fullscreen );
 void	EXPORT	GLimp_AppActivate( qboolean active );

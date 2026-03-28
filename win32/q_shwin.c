@@ -19,6 +19,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
 #define WIN32_LEAN_AND_MEAN
+#include <windows.h>
 #include "../qcommon/qcommon.h"
 #include "winquake.h"
 #include <mmsystem.h>
@@ -342,7 +343,6 @@ void Sys_FindClose (void)
 
 #ifdef _WIN32
 //#ifdef _DEBUG
-#include <windows.h>
 LARGE_INTEGER start;
 double totalPerformanceTime = 0;
 void _START_PERFORMANCE_TIMER (void)
@@ -402,7 +402,7 @@ ____________________________________________________________________________
 
 //XXX: this breaks on strings that contain high ascii chars! not safe to use for measuring string
 //length to strcpy() into.
-#if !defined _M_AMD64
+#if !defined _M_AMD64 && !defined(__GNUC__)
 size_t __cdecl fast_strlen(const char *s)
 {
     __asm
@@ -520,6 +520,26 @@ int __cdecl fast_tolower(int c)
 			or  eax, 00100000b		;to lower (+32)
 		finish1:
 	}
+}
+#elif !defined _M_AMD64
+//GCC/MinGW implementations
+size_t __cdecl fast_strlen(const char *s)
+{
+    return strlen(s);
+}
+
+void __fastcall fast_strlwr (char *s)
+{
+    for (; *s; s++)
+        if (*s >= 'A' && *s <= 'Z')
+            *s += 32;
+}
+
+int __cdecl fast_tolower(int c)
+{
+    if (c >= 'A' && c <= 'Z')
+        return c + 32;
+    return c;
 }
 #endif
 //============================================

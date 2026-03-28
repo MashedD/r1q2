@@ -29,7 +29,6 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 #endif
 
 #include <GL/gl.h>
-#include "glext.h"
 
 #ifdef __linux__
 //#include <GL/fxmesa.h>

@@ -301,7 +301,7 @@ void EXPORT PF_setmodel (edict_t *ent, const char *name)
 
 }
 
-__inline char *SV_FixPlayerSkin (char *val, char *player_name)
+static char *SV_FixPlayerSkin (char *val, char *player_name)
 {
 	static char	fixed_skin[MAX_QPATH];
 

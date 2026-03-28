@@ -136,7 +136,7 @@ struct localent_s
 //yummmm splash gibs death blood
 #define MAX_LOCAL_ENTS 1024
 
-localent_t cl_localents[MAX_LOCAL_ENTS];
+extern localent_t cl_localents[MAX_LOCAL_ENTS];
 
 void Le_Reset (void);
 

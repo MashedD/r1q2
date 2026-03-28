@@ -234,6 +234,7 @@ void EXPORT VID_MenuInit( void )
 		"[1440 900 ]",
 		"[1680 1050]",
 		"[2560 1920]",
+        "[1920 1080]",
 		0
 	};
 
@@ -278,14 +279,14 @@ void EXPORT VID_MenuInit( void )
 		sw_stipplealpha = Cvar_Get( "sw_stipplealpha", "0", CVAR_ARCHIVE );
 
 	s_mode_list[SOFTWARE_MENU].curvalue = sw_mode->intvalue;
-	if (s_mode_list[SOFTWARE_MENU].curvalue > 14)
-		s_mode_list[SOFTWARE_MENU].curvalue = 14;
+	if (s_mode_list[SOFTWARE_MENU].curvalue > 15)
+		s_mode_list[SOFTWARE_MENU].curvalue = 15;
 	else if (s_mode_list[SOFTWARE_MENU].curvalue < 0)
 		s_mode_list[SOFTWARE_MENU].curvalue = 0;
 
 	s_mode_list[OPENGL_MENU].curvalue = gl_mode->intvalue;
-	if (s_mode_list[OPENGL_MENU].curvalue > 14)
-		s_mode_list[OPENGL_MENU].curvalue = 14;
+	if (s_mode_list[OPENGL_MENU].curvalue > 15)
+		s_mode_list[OPENGL_MENU].curvalue = 15;
 	else if (s_mode_list[OPENGL_MENU].curvalue < 0)
 		s_mode_list[OPENGL_MENU].curvalue = 0;
 

@@ -170,7 +170,7 @@ qboolean ALW_Init (void){
 	Com_Printf("Initializing OpenAL subsystem\n", LOG_CLIENT);
 
 	// Initialize OpenAL subsystem
-	if (!ALW_StartOpenAL("OpenAL32"))
+	if (!ALW_StartOpenAL(AL_DRIVER_OPENAL))
 	{
 		// Let the user continue without sound
 		Com_Printf ("WARNING: OpenAL initialization failed\n", LOG_CLIENT|LOG_WARNING);

@@ -40,7 +40,7 @@ qboolean SNDDMA_Init(int firsttime)
 		sndbits = Cvar_Get("sndbits", "16", CVAR_ARCHIVE);
 		sndspeed = Cvar_Get("sndspeed", "0", CVAR_ARCHIVE);
 		sndchannels = Cvar_Get("sndchannels", "2", CVAR_ARCHIVE);
-		snddevice = Cvar_Get("snddevice", "/dev/dsp", CVAR_ARCHIVE);
+		snddevice = Cvar_Get("snddevice", "pulse", CVAR_ARCHIVE);
 	}
 
 // open /dev/dsp, confirm capability to mmap, and get size of dma buffer

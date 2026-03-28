@@ -3066,7 +3066,7 @@ skipplayer:;
 
 		CM_LoadMap (cl.configstrings[CS_MODELS+1], true, &map_checksum);
 
-		if (map_checksum && map_checksum != strtoul(cl.configstrings[CS_MAPCHECKSUM], NULL, 10)) {
+		if (map_checksum && map_checksum != atoi(cl.configstrings[CS_MAPCHECKSUM])) {
 			Com_Error (ERR_DROP, "Local map version differs from server: 0x%.8x != 0x%.8x",
 				map_checksum, atoi(cl.configstrings[CS_MAPCHECKSUM]));
 			return;

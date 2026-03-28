@@ -1,4 +1,4 @@
-.PHONY: default all r1q2ded game client ref_gl clean distclean combine
+.PHONY: default all r1q2ded game client ref_gl clean distclean combine win32 win64
 
 default: all
 
@@ -33,3 +33,16 @@ combine:
 	$(MAKE) -C client combine
 	$(MAKE) -C game combine
 	$(MAKE) -C ref_gl combine
+
+win32:
+	$(MAKE) -C r1q2ded CROSS=mingw32
+	$(MAKE) -C client CROSS=mingw32
+	$(MAKE) -C game CROSS=mingw32
+	$(MAKE) -C ref_gl CROSS=mingw32
+
+win64:
+	$(MAKE) -C r1q2ded CROSS=mingw64
+	$(MAKE) -C client CROSS=mingw64
+	$(MAKE) -C game CROSS=mingw64
+	$(MAKE) -C ref_gl CROSS=mingw64
+

@@ -1,8 +1,16 @@
+ifeq ($(CROSS),mingw32)
+	ARCH=x86
+	TARGET_EXT=.dll
+else ifeq ($(CROSS),mingw64)
+	ARCH=x86_64
+	TARGET_EXT=.dll
+else
+	# this nice line comes from the linux kernel makefile
+	ARCH := $(shell uname -m | sed -e s/i.86/i386/ -e s/sun4u/sparc64/ -e s/arm.*/arm/ -e s/sa110/arm/ -e s/alpha/axp/)
+	TARGET_EXT=.so
+endif
+
 VPATH=../../game
-
-
-# this nice line comes from the linux kernel makefile
-ARCH := $(shell uname -m | sed -e s/i.86/i386/ -e s/sun4u/sparc64/ -e s/arm.*/arm/ -e s/sa110/arm/ -e s/alpha/axp/)
 
 CFLAGS+=-fPIC -DGAME_DLL
 
@@ -20,12 +28,16 @@ ALLSRC:=$(game_SRC)
 
 .PHONY: default combine
 
-default: game$(ARCH).so
+default: game$(ARCH)$(TARGET_EXT)
 
-TARGETS:=game$(ARCH).so game$(ARCH)-combine.so
+TARGETS:=game$(ARCH)$(TARGET_EXT) game$(ARCH)-combine$(TARGET_EXT)
 
-game$(ARCH).so: $(game_OBJ)
+game$(ARCH)$(TARGET_EXT): $(game_OBJ)
 	$(CC) -shared -g -o $@ $^ $(LDFLAGS)
+ifneq ($(findstring mingw,$(CROSS)),)
+	$(STRIP) $@
+endif
 
 include ../make.inc
 
+#-include .depends/*.d

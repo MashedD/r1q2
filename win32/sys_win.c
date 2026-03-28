@@ -33,7 +33,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 #include <conio.h>
 #include <process.h>
 #include <dbghelp.h>
-#include <Richedit.h>
+#include <richedit.h>
 
 #ifdef USE_OPENSSL
 #define OPENSSLEXPORT __cdecl
@@ -56,6 +56,7 @@ int SV_CountPlayers (void);
 
 #ifdef DEDICATED_ONLY
 qboolean	 global_Service = false;
+qboolean	 forceOldConsole = false;
 #endif
 
 HMODULE hSh32 = NULL;
@@ -68,7 +69,7 @@ cvar_t	*win_priority;
 qboolean s_win95;
 
 int			starttime;
-int			ActiveApp;
+qboolean	ActiveApp;
 qboolean	Minimized;
 
 HWND		hwnd_Server;
@@ -280,19 +281,11 @@ void EXPORT Sys_ServiceStart (DWORD argc, LPTSTR *argv)
     return; 
 } 
 
-int EXPORT main(void) 
-{ 
-    SERVICE_TABLE_ENTRY   DispatchTable[] = 
-    { 
-        { "R1Q2", (LPSERVICE_MAIN_FUNCTION)Sys_ServiceStart      }, 
-        { NULL,              NULL          } 
-    }; 
-
-    if (!StartServiceCtrlDispatcher( DispatchTable)) 
-		return 1;
-
-	return 0;
-} 
+int EXPORT main(int ac, char **av)
+{
+	forceOldConsole = true;
+	return WinMain (GetModuleHandle(NULL), NULL, GetCommandLineA(), SW_SHOWDEFAULT);
+}
 
 //================================================================
 
@@ -697,12 +690,28 @@ void Sys_Init (void)
 			}
 		}
 
+#ifdef DEDICATED_ONLY
+		if (forceOldConsole)
+			oldStyleConsole = TRUE;
+#endif
+
 		if (oldStyleConsole)
 		{
-			if (!AllocConsole ())
-				Sys_Error ("Couldn't create dedicated server console");
-			hinput = GetStdHandle (STD_INPUT_HANDLE);
-			houtput = GetStdHandle (STD_OUTPUT_HANDLE);
+#ifdef DEDICATED_ONLY
+			if (forceOldConsole)
+			{
+				// Skip AllocConsole, use existing handles (works under Wine)
+				hinput = GetStdHandle (STD_INPUT_HANDLE);
+				houtput = GetStdHandle (STD_OUTPUT_HANDLE);
+			}
+			else
+#endif
+			{
+				if (!AllocConsole ())
+					Sys_Error ("Couldn't create dedicated server console");
+				hinput = GetStdHandle (STD_INPUT_HANDLE);
+				houtput = GetStdHandle (STD_OUTPUT_HANDLE);
+			}
 		
 			// let QHOST hook in
 			InitConProc (argc, argv);	
@@ -926,6 +935,16 @@ void Sys_ConsoleOutput (const char *string)
 
 	if (!dedicated->intvalue)
 		return;
+
+#ifdef DEDICATED_ONLY
+	if (forceOldConsole)
+	{
+		// Direct output to stderr (works under Wine from terminal)
+		fputs(string, stderr);
+		fflush(stderr);
+		return;
+	}
+#endif
 
 	if (oldStyleConsole)
 	{
@@ -2341,7 +2360,7 @@ void Sys_Spinstats_f (void)
 	Com_Printf ("%u fast spins, %u slow spins, %.2f%% slow.\n", LOG_GENERAL, goodspins, badspins, ((float)badspins / (float)(goodspins+badspins)) * 100.0f);
 }
 
-#ifdef _M_IX86
+#if defined(_M_IX86) && !defined(__GNUC__)
 
 __declspec(naked) unsigned short Sys_GetFPUStatus (void)
 {
@@ -2402,6 +2421,51 @@ qboolean Sys_CheckFPUStatus (void)
 	last_word = fpu_control_word;
 	return true;
 }
+#else
+unsigned short Sys_GetFPUStatus (void)
+{
+	unsigned short fpuword;
+	__asm__ __volatile__ ("fnstcw %0" : "=m" (fpuword));
+	return fpuword;
+}
+
+/*
+ * Round to zero, 24 bit precision
+ */
+void Sys_SetFPU (void)
+{
+	unsigned short fpuword;
+	fpuword = Sys_GetFPUStatus ();
+	fpuword &= ~(3 << 8);
+	fpuword |= (0 << 8);
+	fpuword &= ~(3 << 10);
+	fpuword |= (0 << 10);
+	__asm__ __volatile__ ("fldcw %0" : : "m" (fpuword));
+}
+
+qboolean Sys_CheckFPUStatus (void)
+{
+	static unsigned short	last_word = 0;
+	unsigned short	fpu_control_word;
+
+	fpu_control_word = Sys_GetFPUStatus ();
+
+	Com_DPrintf ("Sys_CheckFPUStatus: rounding %d, precision %d\n", (fpu_control_word >> 10) & 3, (fpu_control_word >> 8) & 3);
+
+	//check rounding (10) and precision (8) are set properly
+	if (((fpu_control_word >> 10) & 3) != 0 ||
+		((fpu_control_word >> 8) & 3) != 0)
+	{
+		if (fpu_control_word != last_word)
+		{
+			last_word = fpu_control_word;
+			return false;
+		}
+	}
+
+	last_word = fpu_control_word;
+	return true;
+}
 #endif
 
 /*
@@ -2416,7 +2480,10 @@ HINSTANCE	global_hInstance;
 //#define FLOAT_GT_ZERO(f) (FLOAT2INTCAST(f) > 0)
 
 extern cvar_t	*sys_loopstyle;
-int WINAPI WinMain (HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nCmdShow)
+#ifdef _WIN32
+#undef WinMain
+#endif
+int WINAPI WinMain (HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nShowCmd)
 {
 #ifndef NO_SERVER
 //	unsigned int	handle;
@@ -2448,15 +2515,19 @@ int WINAPI WinMain (HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLin
 		if (!strcmp(argv[1], "-service"))
 		{
 			global_Service = true;
-			return main ();
+			return main (argc, argv);
 		}
 	}
 #endif
 
 
+#if defined(_MSC_VER)
 	__try
 	{
 		Sys_SetFPU (sys_fpu_bits->intvalue);
+#else
+		Sys_SetFPU ();
+#endif
 		Sys_CheckFPUStatus ();
 
 		Qcommon_Init (argc, argv);
@@ -2552,17 +2623,23 @@ int WINAPI WinMain (HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLin
 			else
 				goodspins++;
 
+#if defined(__GNUC__)
+			Sys_SetFPU ();
+#else
 			Sys_SetFPU (sys_fpu_bits->intvalue);
+#endif
 			//Sys_CheckFPUStatus ();
 			Qcommon_Frame (time);
 
 			oldtime = newtime;
 		}
+#if defined(_MSC_VER)
 	}
 	__except (R1Q2ExceptionHandler(GetExceptionCode(), GetExceptionInformation()))
 	{
 		return 1;
 	}
+#endif
 
 	return 0;
 }

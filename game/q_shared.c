@@ -266,7 +266,7 @@ void R_ConcatTransforms (float in1[3][4], float in2[3][4], float out[3][4])
 
 //int sse2_enabled = 0;
 
-#if defined _M_IX86 && !defined C_ONLY && !defined linux && !defined SSE2
+#if defined _M_IX86 && !defined C_ONLY && !defined linux && !defined SSE2 && !defined __GNUC__
 
 
 /*__declspec( naked ) void __cdecl Q_ftol2( float f, int *out )
@@ -435,7 +435,7 @@ BoxOnPlaneSide
 Returns 1, 2, or 1 + 2
 ==================
 */
-#if !id386 || defined __linux__ || defined __FreeBSD__
+#if !id386 || defined __linux__ || defined __FreeBSD__  || defined __GNUC__
 int EXPORT BoxOnPlaneSide (vec3_t emins, vec3_t emaxs, struct cplane_s *p)
 {
 	float	dist1, dist2;

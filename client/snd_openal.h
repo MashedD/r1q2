@@ -155,7 +155,11 @@ extern alConfig_t		alConfig;
 
 #ifdef _WIN32
 
+#ifdef _M_AMD64
+#define AL_DRIVER_OPENAL	"OpenAL64"
+#else
 #define AL_DRIVER_OPENAL	"OpenAL32"
+#endif
 
 #define ALimp_Init						ALW_Init
 #define ALimp_Shutdown					ALW_Shutdown
