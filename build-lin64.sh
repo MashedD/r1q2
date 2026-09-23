@@ -1,5 +1,6 @@
 #!/usr/bin/env bash
 set -Eeuo pipefail
 
-make -C binaries
+mkdir -p binaries/{client,game,r1q2ded,ref_gl}/.depends
+make -C binaries -j
 
