@@ -1,3 +1,4 @@
 /binaries/**/*.d
 /binaries/**/*.o
+/binaries/client/.depends/pulse-config
 

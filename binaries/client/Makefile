@@ -21,6 +21,15 @@ else
 	TARGET_EXT=
 ifeq ($(shell uname),Linux)
 		LDFLAGS+=-ldl -lopenal
+		pulse_config=0
+ifneq ($(PULSE),0)
+ifneq ($(shell pkg-config --exists libpulse 2>/dev/null && echo yes),)
+		pulse_config=1
+		PLATFORM_SRC+=snd_pulse.c
+		pulse_cflags=-DUSE_PULSE $(shell pkg-config --cflags libpulse)
+		LDFLAGS+=$(shell pkg-config --libs libpulse)
+endif
+endif
 endif
 ifeq ($(shell uname),FreeBSD)
 		LDFLAGS+=-lexecinfo
@@ -53,6 +62,16 @@ TARGETS:=r1q2$(ARCH)$(TARGET_EXT) combine r1q2-combine$(TARGET_EXT)
 
 include ../make.inc
 
+ifneq ($(pulse_config),)
+.PHONY: pulse-config-check
+.depends/pulse-config: pulse-config-check
+	@mkdir -p .depends
+	@printf '%s\n' '$(pulse_config)' | cmp -s - $@ || printf '%s\n' '$(pulse_config)' > $@
+
+snd_linux.o: .depends/pulse-config
+snd_linux.o snd_pulse.o: CFLAGS += $(pulse_cflags)
+endif
+
 r1q2$(ARCH)$(TARGET_EXT): $(quake2_OBJ)
 	$(CC) -g -o $@ $^ $(LDFLAGS)
 ifneq ($(findstring mingw,$(CROSS)),)
@@ -62,7 +81,7 @@ endif
 # only works with gcc >4.1
 combine: r1q2$(ARCH)-combine$(TARGET_EXT)
 r1q2$(ARCH)-combine: $(quake2_SRC)
-	$(CC) -O2 -ffloat-store -DNDEBUG -DLINUX -fwhole-program --combine -g -o $@ $^ $(LDFLAGS)
+	$(CC) -O2 -ffloat-store -DNDEBUG -DLINUX $(pulse_cflags) -fwhole-program --combine -g -o $@ $^ $(LDFLAGS)
 r1q2$(ARCH)-combine.exe: $(quake2_SRC)
 	$(CC) -O2 -ffloat-store -DNDEBUG -DWIN32 -fwhole-program --combine -g -o $@ $^ $(LDFLAGS)
 

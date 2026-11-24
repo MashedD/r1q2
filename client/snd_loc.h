@@ -55,6 +55,10 @@ typedef struct
 	int			samplebits;
 	int			speed;
 	byte		*buffer;
+	// Optional stream backend hooks. Time and submission positions use absolute frames.
+	uint64		(*frame_time)(void);
+	void		(*submit_frames)(uint64 first_frame, unsigned frames);
+	void		(*clear_stream)(void);
 } dma_t;
 
 // !!! if this is changed, the asm code must change !!!

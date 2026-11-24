@@ -49,6 +49,16 @@ cd r1q2
 ./build-win64.sh
 ```
 
+## Linux audio
+
+On Bazzite, install `pulseaudio-libs-devel` in the build container.
+The Linux build detects `libpulse` through `pkg-config`. Set
+`s_initsound 1` and `snddevice pulse` to use the native PulseAudio protocol,
+including PipeWire's PulseAudio server. An OSS device path such as
+`/dev/dsp` selects OSS. Set `s_initsound 2` for OpenAL.
+
+To build the client with OSS and OpenAL only, run `PULSE=0 ./build-lin64.sh`.
+
 ## TODO
 
 - bump version number

@@ -61,6 +61,10 @@ vec3_t		listener_up;
 static qboolean	s_registering;
 
 static int	soundtime;		// sample PAIRS
+static int	dma_wraps;
+static int	dma_oldsamplepos;
+static uint64	dma_clock_base;
+static uint64	dma_clock_frame;
 int   		paintedtime; 	// sample PAIRS
 
 // during registration it is possible to have more sounds
@@ -237,6 +241,8 @@ void S_Init (int fullInit)
 
 			soundtime = 0;
 			paintedtime = 0;
+			dma_wraps = dma_oldsamplepos = 0;
+			dma_clock_base = dma_clock_frame = 0;
 
 			if (!cl_quietstartup->intvalue || developer->intvalue)
 				Com_Printf ("sound sampling rate: %i\n", LOG_CLIENT|LOG_NOTICE, dma.speed);
@@ -1081,6 +1087,8 @@ void S_ClearBuffer (void)
 	SNDDMA_BeginPainting ();
 	if (dma.buffer)
 		memset(dma.buffer, clear, dma.samples * dma.samplebits/8);
+	if (dma.clear_stream)
+		dma.clear_stream ();
 	SNDDMA_Submit ();
 }
 
@@ -1816,30 +1824,46 @@ void S_Update(vec3_t origin, vec3_t forward, vec3_t right, vec3_t up)
 void GetSoundtime(void)
 {
 	int		samplepos;
-	static	int		buffers;
-	static	int		oldsamplepos;
 	int		fullsamples;
 	
 	fullsamples = dma.samples / dma.channels;
+
+	if (dma.frame_time)
+	{
+		uint64 base;
+
+		dma_clock_frame = dma.frame_time ();
+		// Rebase at a ring boundary before the mixer's signed counters overflow.
+		base = dma_clock_frame & ~((uint64)0x40000000 - 1);
+		if (base != dma_clock_base)
+		{
+			dma_clock_base = base;
+			paintedtime = 0;
+			S_StopAllSounds ();
+		}
+		soundtime = (int)(dma_clock_frame - dma_clock_base);
+		dma.samplepos = (soundtime % fullsamples) * dma.channels;
+		return;
+	}
 
 // it is possible to miscount buffers if it has wrapped twice between
 // calls to S_Update.  Oh well.
 	samplepos = SNDDMA_GetDMAPos();
 
-	if (samplepos < oldsamplepos)
+	if (samplepos < dma_oldsamplepos)
 	{
-		buffers++;					// buffer wrapped
+		dma_wraps++;
 		
 		if (paintedtime > 0x40000000)
 		{	// time to chop things off to avoid 32 bit limits
-			buffers = 0;
+			dma_wraps = 0;
 			paintedtime = fullsamples;
 			S_StopAllSounds ();
 		}
 	}
-	oldsamplepos = samplepos;
+	dma_oldsamplepos = samplepos;
 
-	soundtime = buffers*fullsamples + samplepos/dma.channels;
+	soundtime = dma_wraps*fullsamples + samplepos/dma.channels;
 }
 
 
@@ -1879,7 +1903,10 @@ void S_Update_(void)
 
 	S_PaintChannels (endtime);
 
-	SNDDMA_Submit ();
+	if (dma.submit_frames)
+		dma.submit_frames (dma_clock_frame, paintedtime - soundtime);
+	else
+		SNDDMA_Submit ();
 }
 
 /*
