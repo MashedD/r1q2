@@ -1107,7 +1107,8 @@ static void R_RecursiveWorldNode (mnode_t *node, int planebits)
 			ret = BOX_ON_PLANE_SIDE (node->minmaxs, node->minmaxs+3, &frustum[2]);
 			if (ret == 2)
 				return;
-			planebits &= ~4;
+			else if (ret == 1)
+				planebits &= ~4;
 		}
 
 		if (planebits & 8)
