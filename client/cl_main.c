@@ -3974,7 +3974,7 @@ void CL_SendCommand_Synchronous (void)
 	Sys_SendKeyEvents ();
 
 	// allow mice or other external controllers to add commands
-#ifdef JOYSTICK
+#if (defined JOYSTICK) || (defined LINUX)
 	IN_Commands ();
 #endif
 
